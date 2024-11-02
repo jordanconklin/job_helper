@@ -121,10 +121,3 @@ def monitor_repository():
 
 if __name__ == "__main__":
     monitor_repository()
-
-
-'''
-git add .
-git commit -m "testing"
-git push heroku main
-'''

@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
 '''
 git add .
-git commit -m "test commit"
+git commit -m "testing"
 git push heroku main
 
 '''

@@ -6,5 +6,5 @@ A Python script that monitors the SimplifyJobs New Grad Positions repository and
 
 - 🔍 Monitors GitHub repository for updates
 - 🚨 Sends Discord notifications for new job postings
-- ⏰ Checks every 5 minutes
+- ⏰ Checks every minute
 - 🔔 Sends test message on startup

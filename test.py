@@ -6,10 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Replace these with your test repository details
+TEST_OWNER = "jordanconklin"
+TEST_REPO = "test"
+
 DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL')
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
-# Add GitHub headers if token is available
 headers = {}
 if GITHUB_TOKEN:
     headers['Authorization'] = f'token {GITHUB_TOKEN}'
@@ -17,42 +20,46 @@ if GITHUB_TOKEN:
 def send_discord_notification(test_message=False):
     if test_message:
         data = {
-            "content": "@here Test notification - Monitoring started! 🚀",
+            "content": "@here 🧪 Test Monitor Started!",
             "embeds": [{
-                "title": "🔔 Job Monitor Started!",
-                "description": "Your job monitor is now running successfully!",
+                "title": "🔔 Test Monitor Active",
+                "description": "Monitoring test repository for changes",
                 "color": 5763719,
                 "fields": [
                     {
-                        "name": "Monitor Status",
-                        "value": "✅ System is active and checking for new positions"
+                        "name": "Repository",
+                        "value": f"📁 {TEST_OWNER}/{TEST_REPO}"
                     },
                     {
                         "name": "Check Interval",
-                        "value": "🕒 Checking every minute"  # Updated interval
+                        "value": "🕒 Checking every 30 seconds"
                     }
                 ],
                 "footer": {
-                    "text": f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                    "text": f"Test started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                 }
             }]
         }
     else:
         data = {
-            "content": "@here New jobs posted! 🚨",
+            "content": "@here 🧪 Test Change Detected!",
             "embeds": [{
-                "title": "🚨 New Job Alert!",
-                "description": "New positions have been added to the New Grad job board!",
-                "url": "https://github.com/SimplifyJobs/New-Grad-Positions",
+                "title": "🔄 Repository Updated",
+                "description": "A change was detected in the test repository!",
+                "url": f"https://github.com/{TEST_OWNER}/{TEST_REPO}",
                 "color": 3447003,
                 "fields": [
                     {
-                        "name": "Quick Links",
-                        "value": "🔗 [View All Positions](https://github.com/SimplifyJobs/New-Grad-Positions)\n📱 [Simplify Job Search](https://simplify.jobs/)"
+                        "name": "Repository",
+                        "value": f"📁 {TEST_OWNER}/{TEST_REPO}"
+                    },
+                    {
+                        "name": "View Changes",
+                        "value": f"🔗 [Click to view repository](https://github.com/{TEST_OWNER}/{TEST_REPO})"
                     }
                 ],
                 "footer": {
-                    "text": f"Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                    "text": f"Detected at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                 }
             }]
         }
@@ -70,7 +77,7 @@ def send_discord_notification(test_message=False):
         return False
 
 def get_readme_content():
-    url = "https://api.github.com/repos/SimplifyJobs/New-Grad-Positions/contents/README.md"
+    url = f"https://api.github.com/repos/{TEST_OWNER}/{TEST_REPO}/contents/README.md"
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
@@ -83,9 +90,10 @@ def get_readme_content():
         print(f"❌ Error fetching README: {e}")
         return None
 
-def monitor_repository():
-    print("🚀 Starting New Grad Positions monitor...")
+def monitor_test_repository():
+    print("🧪 Starting Test Repository Monitor...")
     print(f"⏰ Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"📁 Monitoring: {TEST_OWNER}/{TEST_REPO}")
     
     if send_discord_notification(test_message=True):
         print("✅ Test message sent successfully!")
@@ -95,7 +103,7 @@ def monitor_repository():
     
     last_sha = get_readme_content()
     if not last_sha:
-        print("❌ Failed to get initial README content. Retrying in 1 minute...")
+        print("❌ Failed to get initial README content. Retrying...")
     
     while True:
         try:
@@ -105,19 +113,19 @@ def monitor_repository():
             current_sha = get_readme_content()
             
             if current_sha and current_sha != last_sha:
-                print("🎉 New update detected!")
+                print("🎉 Change detected in test repository!")
                 if send_discord_notification():
                     last_sha = current_sha
             else:
-                print("📝 No new updates found")
+                print("📝 No changes detected")
             
-            print("💤 Waiting 1 minute before next check...")
-            time.sleep(60)  # 1 minute
+            print("💤 Waiting 30 seconds...")
+            time.sleep(30)  # Check every 30 seconds for testing
             
         except Exception as e:
             print(f"❌ Unexpected error: {e}")
             print("🔄 Continuing monitoring...")
-            time.sleep(60)
+            time.sleep(30)
 
 if __name__ == "__main__":
-    monitor_repository()
+    monitor_test_repository()

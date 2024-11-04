@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import base64
 from config import ENVIRONMENTS, CURRENT_ENV
 
-
+# Load environment variables
 load_dotenv()
 
 DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL')
@@ -18,9 +18,14 @@ headers = {
     'Accept': 'application/vnd.github.v3+json'
 }
 
+# Function to send Discord notifications
 def send_discord_notification(test_message=False):
+    """
+    Sends a Discord notification with the appropriate message based on the test_message flag.
+    """
     config = ENVIRONMENTS[CURRENT_ENV]
     
+    # Send a test message if the test_message flag is set, otherwise send a notification for new jobs
     if test_message:
         data = {
             "content": "@here Test notification - Monitoring started! 🚀",
@@ -68,6 +73,7 @@ def send_discord_notification(test_message=False):
         }
     
     try:
+        # Send the notification to Discord using the webhook URL
         response = requests.post(DISCORD_WEBHOOK_URL, json=data)
         if response.status_code == 204:
             print(f"✅ Discord notification sent! [{datetime.now().strftime('%H:%M:%S')}]")
@@ -79,8 +85,14 @@ def send_discord_notification(test_message=False):
         print(f"❌ Error sending Discord notification: {e}")
         return False
 
+# Function to fetch the latest jobs from the repository
 def get_latest_jobs():
+    """
+    Fetches the latest jobs from the specified repository and returns them as a list of dictionaries.
+    """
     config = ENVIRONMENTS[CURRENT_ENV]
+    
+    # Try to fetch the README file from the repository using the GitHub API
     try:
         print(f"🔍 Fetching from: {config['url']}")
         print(f"🔑 Using auth: {'Yes' if GITHUB_TOKEN else 'No'}")
@@ -120,6 +132,7 @@ def get_latest_jobs():
             
             return job_entries
             
+        # If the response status code is not 200, print an error message
         print(f"❌ Failed to fetch README. Status code: {response.status_code}")
         if response.status_code == 403:
             print("Rate limit might be exceeded. Consider adding a GitHub token.")
@@ -130,22 +143,29 @@ def get_latest_jobs():
         print(f"❌ Error fetching README: {str(e)}")  # More detailed error
         return None
 
+# Main function to monitor the repository and send notifications
 def monitor_repository():
+    """
+    Main function to monitor the repository and send notifications when new jobs are posted.
+    """
     config = ENVIRONMENTS[CURRENT_ENV]
     print(f"🚀 Starting {config['description']} monitor...")
     print(f"🌍 Environment: {CURRENT_ENV.upper()}")
     print(f"⏰ Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
+    # Send a test message to confirm the monitor is working
     if send_discord_notification(test_message=True):
         print("✅ Test message sent successfully!")
     else:
         print("❌ Failed to send test message. Please check your webhook URL.")
         return
     
+    # Fetch the latest jobs from the repository
     last_jobs = get_latest_jobs()
     if not last_jobs:
         print(f"❌ Failed to get initial job listings. Retrying in {config['check_interval']} seconds...")
-    
+
+    # Continuously monitor the repository for updates, checking every config['check_interval'] seconds
     while True:
         try:
             current_time = datetime.now().strftime('%H:%M:%S')
@@ -160,6 +180,7 @@ def monitor_repository():
                     if job not in last_jobs:
                         new_jobs.append(job)
                 
+                # If new jobs were detected, send a notification and update the last_jobs list
                 if new_jobs:
                     print(f"🎉 {len(new_jobs)} new job(s) detected!")
                     if send_discord_notification():
@@ -167,15 +188,21 @@ def monitor_repository():
                 else:
                     print("📝 No new jobs found")
             
+            # Wait for the next check
             print(f"💤 Waiting {config['check_interval']} seconds...")
             time.sleep(config['check_interval'])
             
         except Exception as e:
+            # If an unexpected error occurs, print an error message and wait for the next check
             print(f"❌ Unexpected error: {e}")
             print("🔄 Continuing monitoring...")
             time.sleep(config['check_interval'])
 
+# Function to test the parsing of the README file
 def test_parsing():
+    """
+    Tests the parsing of the README file to ensure it's formatted correctly and returns a list of jobs.
+    """
     print("\n🧪 Testing README parsing...")
     print(f"🌍 Current environment: {CURRENT_ENV}")  # Debug line
     
@@ -183,12 +210,15 @@ def test_parsing():
     if not GITHUB_TOKEN:
         print("⚠️ Warning: No GitHub token found in environment variables")
     
+    # Fetch the latest jobs from the repository
     jobs = get_latest_jobs()
     
+    # If no jobs were fetched, print an error message
     if not jobs:
         print("❌ Failed to fetch jobs")
         return False
     
+    # Print the first 5 jobs found
     print("\n📋 First 5 jobs found:")
     print("-" * 80)
     for i, job in enumerate(jobs, 1):
@@ -211,13 +241,16 @@ def test_parsing():
             print(f"Problematic entry: {job}")
             return False
     
+    # Print a success message if all jobs were parsed successfully
     print("✅ All jobs parsed successfully!")
     print(f"📊 Total jobs parsed: {len(jobs)}")
     return True
 
+# Main execution block
 if __name__ == "__main__":
     import sys
     
+    # Check for command-line arguments to test parsing or set environment
     if len(sys.argv) > 1:
         if sys.argv[1] == "--test":
             test_parsing()
@@ -225,5 +258,6 @@ if __name__ == "__main__":
         elif sys.argv[1] in ENVIRONMENTS:
             CURRENT_ENV = sys.argv[1]
     
+    # Print the current environment and start monitoring
     print(f"🔧 Running in {CURRENT_ENV.upper()} mode")
     monitor_repository()

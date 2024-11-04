@@ -1,7 +1,7 @@
 import os
 
 # MONITOR_ENV is set to test in testing environment, but Heroku will have it set to 'prod'
-CURRENT_ENV = os.getenv('MONITOR_ENV')
+CURRENT_ENV = os.getenv('MONITOR_ENV', 'prod')
 
 ENVIRONMENTS = {
     'test': {

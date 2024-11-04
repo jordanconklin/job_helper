@@ -255,7 +255,8 @@ if __name__ == "__main__":
         if sys.argv[1] == "--test":
             test_parsing()
             sys.exit(0)
-        elif sys.argv[1] in ENVIRONMENTS:
+        # Only override environment if explicitly set via command line
+        elif sys.argv[1] in ENVIRONMENTS and os.getenv('MONITOR_ENV') is None:
             CURRENT_ENV = sys.argv[1]
     
     # Print the current environment and start monitoring

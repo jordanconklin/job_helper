@@ -8,3 +8,13 @@ A Python script that monitors the SimplifyJobs New Grad Positions repository and
 - 🚨 Sends Discord notifications for new job postings
 - ⏰ Checks every minute
 - 🔔 Sends test message on startup
+
+Run this for testing parsing on README.md file:
+```
+python monitor.py --test
+```
+
+Run this for testing or production:
+```
+python monitor.py
+```
